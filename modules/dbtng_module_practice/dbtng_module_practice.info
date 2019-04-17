@@ -2,4 +2,5 @@ name = DBTNG Module Practice
 description = Sample Module copied from Drupal to learn how to make a custom Module
 package = Example modules
 core = 7.x
-files[] = dbtng_module_practice.test
+fil
+0es[] = dbtng_module_practice.test
