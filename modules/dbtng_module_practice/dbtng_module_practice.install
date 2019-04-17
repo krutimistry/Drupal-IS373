@@ -22,7 +22,7 @@ function dbtng_module_practice_install() {
     ->fields($fields)
     ->execute();
 }
-functiondbtng_module_practice_schema() {
+function dbtng_module_practice_schema() {
 
   $schema['dbtng_module_practice'] = array(
     'description' => 'Stores example person entries for demonstration purposes.',

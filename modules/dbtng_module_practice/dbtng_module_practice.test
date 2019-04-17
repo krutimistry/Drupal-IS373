@@ -1,0 +1,21 @@
+<?php
+
+public static function getInfo() {
+    return array(
+      'name' => 'DBTNG example unit and UI tests',
+      'description' => 'Various unit tests on the dbtng example module.' ,
+      'group' => 'Examples',
+    );
+  }
+
+    public function setUp() {
+      parent::setUp('dbtng_module_practice');
+    }
+  public function testInstall() {
+    $result = dbtng_example_entry_load();
+    $this->assertEqual(
+      count($result),
+      2,
+      'Found two entries in the table after installing the module.'
+    );
+  }
