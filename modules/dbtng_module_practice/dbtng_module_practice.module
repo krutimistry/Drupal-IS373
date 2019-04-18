@@ -46,3 +46,33 @@ function dbtng_module_practice_entry_load($entry = array()) {
     // Return the result in object format.
     return $select->execute()->fetchAll();
 }
+
+function dbtng_example_advanced_list() {
+    $output = '';
+
+    $select = db_select('dbtng_example', 'e');
+
+    $select->join('users', 'u', 'e.uid = u.uid');
+
+    $select->addField('e', 'pid');
+    $select->addField('u', 'name', 'username');
+    $select->addField('e', 'name');
+    $select->addField('e', 'surname');
+    $select->addField('e', 'age');
+    $select->condition('e.name', 'John');
+    $select->condition('e.age', 18, '>');
+    $select->range(0, 50);
+    $entries = $select->execute()->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($entries)) {
+        $rows = array();
+        foreach ($entries as $entry) {
+            $rows[] = array_map('check_plain', $entry);
+        }
+        $header = array(t('Id'), t('Created by'), t('Name'), t('Surname'), t('Age'));
+        $output .= theme('table', array('header' => $header, 'rows' => $rows));
+    }
+    else {
+        drupal_set_message(t('No entries meet the filter criteria (Name = "John" and Age > 18).'));
+    }
+    return $output;
+}
