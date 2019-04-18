@@ -182,6 +182,7 @@ class DBTNGExampleUnitTestCase extends DrupalWebTestCase {
 
     // Verify that now there are only 3 records.
     $result = dbtng_module_practice_entry_load();
+    $result = dbtng_module_practice_entry_load();
     $this->assertEqual(
       count($result),
       3,
