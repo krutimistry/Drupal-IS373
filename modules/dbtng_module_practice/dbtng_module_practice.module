@@ -136,3 +136,142 @@ function dbtng_module_practice_menu(){
 
     return $items;
 }
+function dbtng_module_practice_form_add($form, &$form_state) {
+    $form = array();
+
+    $form['add'] = array(
+        '#type'  => 'fieldset',
+        '#title' => t('Add a person entry'),
+    );
+    $form['add']['name'] = array(
+        '#type'  => 'textfield',
+        '#title' => t('Name'),
+        '#size'  => 15,
+    );
+    $form['add']['surname'] = array(
+        '#type'  => 'textfield',
+        '#title' => t('Surname'),
+        '#size'  => 15,
+    );
+    $form['add']['age'] = array(
+        '#type'  => 'textfield',
+        '#title' => t('Age'),
+        '#size'  => 5,
+        '#description' => t("Values greater than 127 will cause an exception. Try it - it's a great example why exception handling is needed with DTBNG."),
+    );
+    $form['add']['submit'] = array(
+        '#type'  => 'submit',
+        '#value' => t('Add'),
+    );
+
+    return $form;
+}
+function dbtng_module_practice_form_add_submit($form, &$form_state) {
+    global $user;
+
+    // Save the submitted entry.
+    $entry = array(
+        'name'    => $form_state['values']['name'],
+        'surname' => $form_state['values']['surname'],
+        'age'     => $form_state['values']['age'],
+        'uid'     => $user->uid,
+    );
+    $return = dbtng_module_practice_entry_insert($entry);
+    if ($return) {
+        drupal_set_message(t("Created entry @entry", array('@entry' => print_r($entry, TRUE))));
+    }
+}
+
+function dbtng_module_practice_form_update($form, &$form_state) {
+    $form = array(
+        '#prefix' => '<div id="updateform">',
+        '#suffix' => '</div>',
+    );
+
+    $entries = dbtng_module_practice_entry_load();
+    $keyed_entries = array();
+    if (empty($entries)) {
+        $form['no_values'] = array(
+            '#value' => t("No entries exist in the table dbtng_example table."),
+        );
+        return $form;
+    }
+
+    foreach ($entries as $entry) {
+        $options[$entry->pid] = t("@pid: @name @surname (@age)",
+            array(
+                '@pid' => $entry->pid,
+                '@name' => $entry->name,
+                '@surname' => $entry->surname,
+                '@age' => $entry->age,
+            )
+        );
+        $keyed_entries[$entry->pid] = $entry;
+    }
+    $default_entry = !empty($form_state['values']['pid']) ? $keyed_entries[$form_state['values']['pid']] : $entries[0];
+
+    $form_state['entries'] = $keyed_entries;
+
+    $form['pid'] = array(
+        '#type' => 'select',
+        '#options' => $options,
+        '#title' => t('Choose entry to update'),
+        '#default_value' => $default_entry->pid,
+        '#ajax' => array(
+            'wrapper' => 'updateform',
+            'callback' => 'dbtng_example_form_update_callback',
+        ),
+    );
+
+    $form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Updated first name'),
+        '#size' => 15,
+        '#default_value' => $default_entry->name,
+    );
+
+    $form['surname'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Updated last name'),
+        '#size' => 15,
+        '#default_value' => $default_entry->surname,
+    );
+    $form['age'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Updated age'),
+        '#size' => 4,
+        '#default_value' => $default_entry->age,
+        '#description' => t("Values greater than 127 will cause an exception"),
+    );
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Update'),
+    );
+    return $form;
+}
+function dbtng_example_form_update_callback($form, $form_state) {
+    $entry = $form_state['entries'][$form_state['values']['pid']];
+    foreach (array('name', 'surname', 'age') as $item) {
+        $form[$item]['#value'] = $entry->$item;
+    }
+    return $form;
+}
+
+/**
+ * Submit handler for 'update entry' form.
+ */
+function dbtng_module_practice_form_update_submit($form, &$form_state) {
+    global $user;
+    
+    $entry = array(
+        'pid' => $form_state['values']['pid'],
+        'name' => $form_state['values']['name'],
+        'surname' => $form_state['values']['surname'],
+        'age' => $form_state['values']['age'],
+        'uid' => $user->uid,
+    );
+    $count = dbtng_module_practice_entry_update($entry);
+    drupal_set_message(t("Updated entry @entry (@count row updated)",
+        array('@count' => $count, '@entry' => print_r($entry, TRUE))));
+}
